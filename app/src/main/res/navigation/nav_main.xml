@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/autoClickFragment">
+    <fragment
+        android:id="@+id/autoClickFragment"
+        android:name="com.yikexiya.lazykit.ui.autoclick.AutoClickFragment"
+        android:label="AutoClickFragment"/>
+</navigation>

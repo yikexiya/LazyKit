@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">LazyKit</string>
+    <string name="create">新增</string>
+    <string name="please_input_label">请输入标签</string>
+</resources>
