@@ -12,4 +12,11 @@ object FunKit {
     fun getCenterY(fontMetrics: Paint.FontMetrics, height: Int): Float {
         return (height - fontMetrics.bottom - fontMetrics.top) / 2f
     }
+
+    /**
+     * 计算文字y坐标根据指定的y坐标
+     */
+    fun calcFontYByY(fontMetrics: Paint.FontMetrics, y: Int): Float {
+        return y - (fontMetrics.bottom + fontMetrics.top) * 0.5f
+    }
 }

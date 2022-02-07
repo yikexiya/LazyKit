@@ -4,6 +4,7 @@ import android.content.res.Resources
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 
 private val metrics = Resources.getSystem().displayMetrics
 val Int.dp: Float
@@ -28,6 +29,23 @@ fun View.centerView(source: View) {
     val left = (if (parent == source) 0 else source.left) + (source.measuredWidth - measuredWidth) / 2
     val top = (if (parent == source) 0 else source.top) + (source.measuredHeight - measuredHeight) / 2
     layout(left, top, left + measuredWidth, top + measuredHeight)
+}
+fun ViewGroup.constraintChildrenWith(distance: Int, children: List<View>) {
+    val space = (measuredWidth - children.sumOf { it.measuredWidth }) / (children.size + 1)
+    var left = space
+    children.forEach {
+        it.layout(left, distance, left + it.measuredWidth, distance + it.measuredHeight)
+        left += it.measuredWidth + space
+    }
+}
+
+fun View.showAsDialog() {
+    val windowManager = context.getSystemService(WindowManager::class.java)
+    if (parent != null) {
+        throw RuntimeException("现在还不支持添加到ViewGroup上面的View")
+        return
+    }
+//    windowManager.addView(this, null)
 }
 
 fun View.autoMeasure(parent: ViewGroup) {

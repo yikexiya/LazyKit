@@ -26,11 +26,12 @@ object PermissionExt {
         when (permission) {
             PERMISSION_FLOAT_WINDOW -> {
                 val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context.packageName}"))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
             }
             PERMISSION_ACCESSIBILITY -> {
                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-//                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
             }
         }
