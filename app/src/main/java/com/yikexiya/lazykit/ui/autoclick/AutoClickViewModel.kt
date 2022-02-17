@@ -18,15 +18,12 @@ class AutoClickViewModel(application: Application) : AndroidViewModel(applicatio
     private val database = getApplication<MainApplication>().database
     private val autoClickDao = database.autoClickDao()
     private val workQuery = WorkQuery.Builder.fromTags(listOf(AutoClickWorker::class.java.name))
-        .addStates(listOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED, WorkInfo.State.CANCELLED))
+        .addStates(listOf(WorkInfo.State.ENQUEUED, WorkInfo.State.FAILED))
         .build()
     val works = WorkManager.getInstance(application).getWorkInfosLiveData(workQuery)
     val gestureGroups: LiveData<List<GestureGroupRelation>> = autoClickDao.getGestures().asLiveData()
 
     fun newGestureGroup() {
-//        val mediaProjectionManager = getApplication<MainApplication>().getSystemService(MediaProjectionManager::class.java)
-//        val createScreenCaptureIntent = mediaProjectionManager.createScreenCaptureIntent()
-//        MainActivity.instance.screenshotLauncher.launch(createScreenCaptureIntent)
         val context = getApplication<Application>()
         if (!PermissionExt.hasPermission(context, PermissionExt.PERMISSION_ACCESSIBILITY)) {
             PermissionExt.requestPermission(context, PermissionExt.PERMISSION_ACCESSIBILITY)
@@ -40,6 +37,8 @@ class AutoClickViewModel(application: Application) : AndroidViewModel(applicatio
     }
     fun deleteGestureGroup(relation: GestureGroupRelation) {
         viewModelScope.launch(Dispatchers.IO) {
+            val workRequestId = relation.gestureGroup.workRequestId ?: return@launch
+            WorkManager.getInstance(getApplication()).cancelWorkById(UUID.fromString(workRequestId))
             autoClickDao.deleteGestureGroup(relation.gestureGroup)
         }
     }
@@ -51,7 +50,9 @@ class AutoClickViewModel(application: Application) : AndroidViewModel(applicatio
     }
     fun cancelGestureGroup(relation: GestureGroupRelation) {
         viewModelScope.launch(Dispatchers.IO) {
-            autoClickDao.changeGestureGroupRunningTo(relation.gestureGroup.id, !relation.gestureGroup.isRunning)
+            val workRequestId = relation.gestureGroup.workRequestId ?: return@launch
+            WorkManager.getInstance(getApplication()).cancelWorkById(UUID.fromString(workRequestId))
+            autoClickDao.runGestureGroupWith(relation.gestureGroup.id, null)
         }
     }
     fun playGestureGroup(relation: GestureGroupRelation) {
@@ -87,7 +88,7 @@ class AutoClickViewModel(application: Application) : AndroidViewModel(applicatio
         val workManager = WorkManager.getInstance(getApplication())
         workManager.enqueue(workRequest)
         viewModelScope.launch(Dispatchers.IO) {
-            autoClickDao.changeGestureGroupRunningTo(gestureGroup.id, !gestureGroup.isRunning)
+            autoClickDao.runGestureGroupWith(gestureGroup.id, workRequest.id.toString())
         }
     }
 

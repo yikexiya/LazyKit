@@ -10,7 +10,7 @@ class GestureGroup(
      * 已0点为基准，24小时制，运行的时间，单位秒
      */
     val runTimeS: Long,
-    val isRunning: Boolean = false,
+    val workRequestId: String? = null,
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0
 ) {
@@ -30,6 +30,8 @@ class GestureGroup(
     }
 
     override fun toString(): String {
-        return "group: id=$id, name=$name, isRunning=$isRunning runAt=${runTimeS}s"
+        return "group: id=$id, name=$name, workRequestId=$workRequestId runAt=${runTimeS}s"
     }
+
+    fun isRunning() = workRequestId != null
 }

@@ -6,20 +6,20 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AutoClickDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveGestureGroup(gestureGroup: GestureGroup): Long
+    fun saveGestureGroup(gestureGroup: GestureGroup): Long
 
     @Delete
-    suspend fun deleteGestureGroup(gestureGroup: GestureGroup)
+    fun deleteGestureGroup(gestureGroup: GestureGroup)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun saveGestures(gestures: List<Gesture>)
+    fun saveGestures(gestures: List<Gesture>)
 
     @Transaction
     @Query("select * from GestureGroup where id in (select distinct(groupId) from Gesture)")
     fun getGestures(): Flow<List<GestureGroupRelation>>
 
-    @Query("update GestureGroup set isRunning = :run where id = :groupId")
-    fun changeGestureGroupRunningTo(groupId: Long, run: Boolean)
+    @Query("update GestureGroup set workRequestId = :workRequestId where id = :groupId")
+    fun runGestureGroupWith(groupId: Long, workRequestId: String?)
 
     @Query("update GestureGroup set runTimeS = :secondInDay where id = :groupId")
     fun changeGestureGroupTime(groupId: Long, secondInDay: Long)

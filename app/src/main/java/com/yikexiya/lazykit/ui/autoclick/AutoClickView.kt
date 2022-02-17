@@ -12,7 +12,6 @@ import com.yikexiya.lazykit.R
 import com.yikexiya.lazykit.app.MainApplication
 import com.yikexiya.lazykit.theme.*
 import com.yikexiya.lazykit.util.*
-import java.util.*
 
 class AutoClickView(context: Context) : ViewGroup(context) {
     private val listAdapter = object : ListAdapter<GestureGroupRelation, RecyclerView.ViewHolder>(
@@ -24,7 +23,7 @@ class AutoClickView(context: Context) : ViewGroup(context) {
             override fun areContentsTheSame(oldItem: GestureGroupRelation, newItem: GestureGroupRelation): Boolean {
                 val oldGroup = oldItem.gestureGroup
                 val newGroup = newItem.gestureGroup
-                return oldGroup.name == newGroup.name && oldGroup.isRunning == newGroup.isRunning && oldGroup.runTimeS == newGroup.runTimeS
+                return oldGroup.name == newGroup.name && oldGroup.workRequestId == newGroup.workRequestId && oldGroup.runTimeS == newGroup.runTimeS
             }
         }
     ) {
@@ -105,7 +104,7 @@ class AutoClickView(context: Context) : ViewGroup(context) {
         private val playIcon = icon(this, R.drawable.ic_play).apply {
             setOnClickListener {
                 val relation = this@ItemView.tag as GestureGroupRelation
-                if (relation.gestureGroup.isRunning)
+                if (relation.gestureGroup.isRunning())
                     cancelItemEvent?.invoke(relation)
                 else
                     playItemEvent?.invoke(relation)
@@ -142,7 +141,7 @@ class AutoClickView(context: Context) : ViewGroup(context) {
             val secondStr = if (second < 10) "0$second" else "$second"
             val timeStr = "$hourStr:$minuteStr:$secondStr"
             runTime.text = timeStr
-            val running = model.gestureGroup.isRunning
+            val running = model.gestureGroup.isRunning()
             val icon = if (running)
                 R.drawable.ic_pause
             else

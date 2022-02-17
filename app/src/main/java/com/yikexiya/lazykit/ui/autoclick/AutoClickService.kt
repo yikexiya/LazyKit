@@ -2,27 +2,17 @@ package com.yikexiya.lazykit.ui.autoclick
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.res.Resources
-import android.graphics.BitmapFactory
 import android.graphics.Path
-import android.graphics.PixelFormat
-import android.hardware.display.DisplayManager
-import android.media.ImageReader
-import android.media.projection.MediaProjectionManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.accessibility.AccessibilityEvent
-import com.yikexiya.lazykit.R
 import com.yikexiya.lazykit.app.MainActivity
 import com.yikexiya.lazykit.app.MainApplication
 import com.yikexiya.lazykit.util.PermissionExt
 import com.yikexiya.lazykit.util.log
+import com.yikexiya.lazykit.util.logInFile
 import com.yikexiya.lazykit.util.logW
 
 class AutoClickService : AccessibilityService() {
@@ -77,14 +67,21 @@ class AutoClickService : AccessibilityService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private var needReClick = false
     private val autoClickCallback: GestureResultCallback = object : GestureResultCallback() {
         override fun onCompleted(gestureDescription: GestureDescription?) {
             handler.post(runnable)
-            log("click")
+            log("自动点击事件完成")
         }
 
-        override fun onCancelled(gestureDescription: GestureDescription?) {
-            log("onCanceled")
+        override fun onCancelled(gestureDescription: GestureDescription) {
+            if (needReClick) {
+                logInFile("第${runnable.index}个点击事件还是失败呀，没办法了")
+            } else {
+                logInFile("第${runnable.index}个点击事件被意外的取消了，重新触发")
+                dispatchGesture(gestureDescription, this, handler)
+            }
+            needReClick = true
         }
     }
     private val runnable = object : Runnable {
@@ -93,12 +90,11 @@ class AutoClickService : AccessibilityService() {
         lateinit var durations: LongArray
         lateinit var delayTimes: LongArray
         var groupId = 0L
-        private var index = 0
+        var index = 0
         override fun run() {
-            log("perform $index")
             if (index >= xArrays.size) {
                 index = 0
-                MainApplication.instance().database.autoClickDao().changeGestureGroupRunningTo(groupId, false)
+                MainApplication.instance().database.autoClickDao().runGestureGroupWith(groupId, null)
                 return
             }
             val x = xArrays[index]
@@ -112,6 +108,8 @@ class AutoClickService : AccessibilityService() {
                 .build()
             dispatchGesture(gesture, autoClickCallback, handler)
             index++
+            needReClick = false
+            log("第${index}个点击事件将在${delayTime}s后开始执行，持续时间${duration}ms")
         }
     }
 
@@ -131,7 +129,6 @@ class AutoClickService : AccessibilityService() {
         }
 
         override fun onCancelled(gestureDescription: GestureDescription?) {
-            logW("click is canceled")
         }
     }
     private fun dispatchClick(x: Float, y: Float) {
